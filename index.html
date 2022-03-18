@@ -1,0 +1,193 @@
+<!doctype html>
+<html amp lang="en">
+  <head>
+    <meta charset="utf-8">
+
+    <script async src="https://cdn.ampproject.org/v0.js"></script>
+    <script async custom-element="amp-list" src="https://cdn.ampproject.org/v0/amp-list-0.1.js"></script>
+    <script async custom-element="amp-bind" src="https://cdn.ampproject.org/v0/amp-bind-0.1.js"></script>
+    <script async custom-template="amp-mustache" src="https://cdn.ampproject.org/v0/amp-mustache-0.2.js"></script>
+    <script async custom-element="amp-lightbox" src="https://cdn.ampproject.org/v0/amp-lightbox-0.1.js"></script>
+
+    <title>IMDB Search</title>
+    <link rel="canonical" href="index.html">
+    <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1">
+    <style amp-boilerplate>body{-webkit-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-moz-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-ms-animation:-amp-start 8s steps(1,end) 0s 1 normal both;animation:-amp-start 8s steps(1,end) 0s 1 normal both}@-webkit-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-moz-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-ms-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-o-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}</style><noscript><style amp-boilerplate>body{-webkit-animation:none;-moz-animation:none;-ms-animation:none;animation:none}</style></noscript>
+    <style amp-custom>
+      body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      header {
+        background: rgb(150, 50, 50);
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        align-content: center;
+        justify-content: space-around;
+        padding-bottom: 10px;
+        margin-bottom: 15px;
+        position: fixed;
+        z-index: 10;
+      }
+      h1 {
+        color: white;
+        margin-top: 5px;
+        margin-bottom: 5px;
+      }
+      #movie-list {
+        margin-top: 90px;
+      }
+      .movie-headline {
+        margin-bottom: 2px;
+      }
+      #lightbox {
+        z-index: 20;
+        background: white;
+        display: flex;
+        align-items: center;
+        align-content: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+      }
+      #lightbox-content {
+        display: flex;
+        align-items: center;
+        align-content: center;
+        justify-content: center;
+        width: 100%;
+        height: 100vh;
+      }
+      #template {
+        display: flex;
+        align-content: center;
+        justify-content: center;
+      }
+      #lightbox-movie {
+        background: white;
+        padding: 10px;
+        max-width: 600px;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        margin: auto;
+      }
+      #lightbox-movie-info {
+        display: flex;
+        justify-content: flex-start;
+        margin-top: 0;
+        width: 100%;
+      }
+      #lightbox-image {
+        min-width: 140px;
+        max-width: 100%;
+      }
+      #lightbox-movie-text h4, p {
+        margin-top: 0;
+        margin-bottom: 0;
+        padding: 14px;
+        padding-top: 0;
+        padding-bottom: 0;
+      }
+      #lightbox-movie-plot {
+        display: flex;
+        justify-content: center;
+        margin: 0;
+        margin-top: 10px;
+        max-width: 600px;
+      }
+      #lightbox-movie-plot p {
+        margin: 0;
+        margin-right: 8px;
+        padding: 0;
+      }
+      #click-close {
+        position: fixed;
+        bottom: 0;
+        font-style: italic;
+      }
+      .placeholder {
+        margin-top: 80px;
+        text-align: center;
+      }
+
+      @media (min-width:600px) and (min-height: 600px) {
+        #lightbox-movie-info {
+          min-height: 450px;
+        }
+        #lightbox-image {
+          min-width: 300px;
+          min-height: 450px;
+        }
+      }
+
+      @media (min-width:800px) and (min-height: 800px) {
+        body {
+          font-size: 1.4em;
+        }
+        #lightbox-movie {
+          justify-content: center;
+        }
+      }
+
+    </style>
+  </head>
+
+  <body id="body">
+    <header>
+      <h1>IMDB Movie Search</h1>
+      <input type="text" id="search" placeholder="Search by name" on="input-debounced:AMP.setState({state: {input: event.value}}), body.scrollTo()" />
+    </header>
+
+    <amp-state id="state">
+      <script type="application/json">
+        {
+          "input": "",
+          "selected": ""
+        }
+      </script>
+    </amp-state>
+
+    <amp-list id="movie-list" width="300px" height="400px" layout="fixed" items="Search" [src]="'https://www.omdbapi.com/?s=' + state.input + '&apikey=c2f9b89f'" reset-on-refresh >
+      <div class="placeholder" placeholder><p>Loading results...</p></div>
+      <div class="placeholder" fallback><p>No results found</p></div>
+      <template type="amp-mustache">
+        <div role="img" tabindex="-1" class="movie-result" on="tap:AMP.setState({state: {selected: '{{imdbID}}' } }),lightbox">
+          <h3 class="movie-headline">{{Title}} ({{Year}})</h3>
+          <amp-img width="300px" height="400px" src="{{Poster}}" alt="movie-poster"></amp-img>
+        </div>
+      </template>
+    </amp-list>
+
+    <amp-lightbox role="presentation" tabindex="-1" id="lightbox" layout="nodisplay" animate-in="fade-in" on='tap:lightbox.close'>
+      <amp-list id="lightbox-content" width="100vh" height="100vh"  layout="responsive" single-item items="." [src]=" 'https://www.omdbapi.com/?i=' + state.selected + '&apikey=c2f9b89f' " >
+        <template id="template" type="amp-mustache">
+          <div id="lightbox-movie">
+            <div id="lightbox-movie-info">
+              <amp-img id="lightbox-image" width="300px" height="445px" layout="responsive" src="{{Poster}}" alt="movie-poster"></amp-img>
+              <div id="lightbox-movie-text">
+                <h4>{{Title}} ({{Year}})</h4>
+                <h4>Rated {{Rated}}</h4>
+                <p>Directed by {{Director}}</p>
+                <p>Starring {{Actors}}</p>
+              </div>
+            </div>
+            <div id="lightbox-movie-plot">
+              <p>{{Plot}}</p>
+            </div>
+            <div id="click-close">
+              <p>Click anywhere to close</p>
+            </div>
+          </div>
+        </template>
+      </amp-list>
+    </amp-lightbox>
+
+  </body>
+
+</html>
